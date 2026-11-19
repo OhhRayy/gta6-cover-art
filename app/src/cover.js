@@ -1,18 +1,19 @@
-// The cover engine: draws a GTA-poster-style cover on any 2D canvas, at any size.
-// Everything is drawn from the state — no image is ever fetched from the network.
-// Photos come from the caller through `resolvePhoto(key)`, which returns an
+// The cover engine: draws a GTA-poster-style cover on any 2D canvas, at any
+// size. Everything is drawn from the state — no image is ever fetched from the
+// network. Photos arrive through `resolvePhoto(key)`, which hands back an
 // HTMLImageElement (a local upload or a bundled sample) or null.
 
 import { GRADES } from './grades.js';
 import { LAYOUTS } from './layouts.js';
 
+// The three export sizes the editor offers, in pixels.
 export const SIZES = [
   { id: 'square', label: '1080 × 1080', w: 1080, h: 1080 },
   { id: 'portrait', label: '1080 × 1350', w: 1080, h: 1350 },
   { id: 'wide', label: '1920 × 1080', w: 1920, h: 1080 },
 ];
 
-/** Deterministic pseudo-random generator, so the grain looks the same every render. */
+/** Seeded pseudo-random generator, so the grain looks the same every render. */
 export function mulberry32(seed) {
   let a = seed >>> 0;
   return () => {
@@ -26,30 +27,32 @@ export function mulberry32(seed) {
 
 /** Draws one photo into a rectangle, cover-fit, with zoom and pan offsets. */
 export function drawPhotoCover(ctx, img, x, y, w, h, zoom, ox, oy) {
-  const iw = img.naturalWidth || img.width;
-  const ih = img.naturalHeight || img.height;
-  const base = Math.max(w / iw, h / ih) * (zoom || 1);
-  const dw = iw * base;
-  const dh = ih * base;
-  ctx.drawImage(img, x + (w - dw) / 2 + (ox || 0) * w, y + (h - dh) / 2 + (oy || 0) * h, dw, dh);
+  const imgW = img.naturalWidth || img.width;
+  const imgH = img.naturalHeight || img.height;
+  const scale = Math.max(w / imgW, h / imgH) * (zoom || 1);
+  const drawW = imgW * scale;
+  const drawH = imgH * scale;
+  const drawX = x + (w - drawW) / 2 + (ox || 0) * w;
+  const drawY = y + (h - drawH) / 2 + (oy || 0) * h;
+  ctx.drawImage(img, drawX, drawY, drawW, drawH);
 }
 
-/** Draws a five-pointed star path centred at (cx, cy) with outer radius r. */
+/** Traces a five-pointed star path centred at (cx, cy), outer radius r. */
 export function starPath(ctx, cx, cy, r) {
-  const inner = r * 0.42;
+  const innerR = r * 0.42;
   ctx.beginPath();
   for (let i = 0; i < 10; i++) {
-    const rad = i % 2 === 0 ? r : inner;
-    const a = -Math.PI / 2 + (i * Math.PI) / 5;
-    const px = cx + Math.cos(a) * rad;
-    const py = cy + Math.sin(a) * rad;
+    const radius = i % 2 === 0 ? r : innerR;
+    const angle = -Math.PI / 2 + (i * Math.PI) / 5;
+    const px = cx + Math.cos(angle) * radius;
+    const py = cy + Math.sin(angle) * radius;
     if (i === 0) ctx.moveTo(px, py);
     else ctx.lineTo(px, py);
   }
   ctx.closePath();
 }
 
-/** Fits a one-line title into maxWidth, shrinking from startSize. Returns the size. */
+/** Shrinks a one-line title from startSize until it fits maxWidth. Returns the size. */
 export function fitTitle(ctx, text, maxWidth, startSize, fontName) {
   let size = startSize;
   ctx.font = `${size}px ${fontName}`;
@@ -63,40 +66,69 @@ export function fitTitle(ctx, text, maxWidth, startSize, fontName) {
 /** Halftone dots along a horizontal strip — the poster's printed-ink look. */
 export function drawHalftone(ctx, x, y, w, rows, dotGap, color) {
   ctx.fillStyle = color;
-  for (let r = 0; r < rows; r++) {
+  for (let row = 0; row < rows; row++) {
     for (let px = x + dotGap / 2; px < x + w; px += dotGap) {
-      const rad = dotGap * 0.16 * (1 + 0.6 * Math.sin(px / dotGap + r * 1.7));
+      const radius = dotGap * 0.16 * (1 + 0.6 * Math.sin(px / dotGap + row * 1.7));
       ctx.beginPath();
-      ctx.arc(px, y + r * dotGap, Math.max(0.6, rad), 0, Math.PI * 2);
+      ctx.arc(px, y + row * dotGap, Math.max(0.6, radius), 0, Math.PI * 2);
       ctx.fill();
     }
   }
 }
 
-/** Film grain: faint speckles over the whole cover. */
+/** Film grain: faint speckles scattered over the whole cover. */
 export function drawGrain(ctx, w, h, seed = 42) {
   const rand = mulberry32(seed);
-  const n = Math.floor((w * h) / 900);
-  for (let i = 0; i < n; i++) {
-    const v = rand();
-    ctx.fillStyle = v > 0.5 ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)';
+  const specks = Math.floor((w * h) / 900);
+  for (let i = 0; i < specks; i++) {
+    const light = rand() > 0.5;
+    ctx.fillStyle = light ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)';
     ctx.fillRect(rand() * w, rand() * h, 1 + rand() * 2, 1 + rand() * 2);
   }
 }
 
 /** Darkened corners that pull the eye to the middle of the cover. */
 export function drawVignette(ctx, w, h) {
-  const g = ctx.createRadialGradient(
+  const grad = ctx.createRadialGradient(
     w / 2, h / 2, Math.min(w, h) * 0.35,
     w / 2, h / 2, Math.max(w, h) * 0.75,
   );
-  g.addColorStop(0, 'rgba(0,0,0,0)');
-  g.addColorStop(1, 'rgba(0,0,0,0.38)');
-  ctx.fillStyle = g;
+  grad.addColorStop(0, 'rgba(0,0,0,0)');
+  grad.addColorStop(1, 'rgba(0,0,0,0.38)');
+  ctx.fillStyle = grad;
   ctx.fillRect(0, 0, w, h);
 }
 
-/** Draws one panel: the photo (or a grade-coloured placeholder), its tint and frame. */
+/** The parallelogram path of a diagonal band panel, in cover coordinates. */
+function bandPath(ctx, x, y, w, h, lean) {
+  ctx.beginPath();
+  ctx.moveTo(x + lean, y);
+  ctx.lineTo(x + w + lean, y);
+  ctx.lineTo(x + w - lean, y + h);
+  ctx.lineTo(x - lean, y + h);
+  ctx.closePath();
+}
+
+/** Strokes the white inked frame around a panel. */
+function strokePanelFrame(ctx, panel, x, y, w, h, W, H, diagonal) {
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,255,255,0.92)';
+  ctx.lineWidth = Math.max(2, W * 0.004);
+  ctx.lineJoin = 'round';
+  if (diagonal) {
+    bandPath(ctx, x, y, w, h, H * 0.055);
+    ctx.stroke();
+  } else if (panel.rot) {
+    ctx.translate(x + w / 2, y + h / 2);
+    ctx.rotate((panel.rot * Math.PI) / 180);
+    ctx.strokeRect(-w / 2, -h / 2, w, h);
+  } else {
+    ctx.strokeRect(x, y, w, h);
+  }
+  ctx.restore();
+}
+
+/** Draws one panel: the photo (or a grade-coloured placeholder), tint and frame. */
 export function drawPanel(ctx, panel, slot, img, grade, W, H, diagonal) {
   const x = panel.x * W;
   const y = panel.y * H;
@@ -104,14 +136,7 @@ export function drawPanel(ctx, panel, slot, img, grade, W, H, diagonal) {
   const h = panel.h * H;
   ctx.save();
   if (diagonal) {
-    // Parallelogram clip: the band leans right as it falls.
-    const s = H * 0.055;
-    ctx.beginPath();
-    ctx.moveTo(x + s, y);
-    ctx.lineTo(x + w + s, y);
-    ctx.lineTo(x + w - s, y + h);
-    ctx.lineTo(x - s, y + h);
-    ctx.closePath();
+    bandPath(ctx, x, y, w, h, H * 0.055);
     ctx.clip();
   } else if (panel.rot) {
     ctx.translate(x + w / 2, y + h / 2);
@@ -125,20 +150,20 @@ export function drawPanel(ctx, panel, slot, img, grade, W, H, diagonal) {
     ctx.rect(x, y, w, h);
     ctx.clip();
   }
-  // The clip paths above are in absolute cover coordinates, except the rotated
+  // Clip paths above are in absolute cover coordinates, except the rotated
   // one, whose transform already moved the origin to the panel's top-left.
   const ox = panel.rot ? 0 : x;
   const oy = panel.rot ? 0 : y;
   if (img) {
     drawPhotoCover(ctx, img, ox, oy, w, h, slot.zoom, slot.ox, slot.oy);
   } else {
-    const g = ctx.createLinearGradient(ox, oy, ox, oy + h);
-    g.addColorStop(0, grade.sky[0]);
-    g.addColorStop(1, grade.sky[2]);
-    ctx.fillStyle = g;
+    const fill = ctx.createLinearGradient(ox, oy, ox, oy + h);
+    fill.addColorStop(0, grade.sky[0]);
+    fill.addColorStop(1, grade.sky[2]);
+    ctx.fillStyle = fill;
     ctx.fillRect(ox, oy, w, h);
   }
-  // Grade tint over the photo, then a soft top light.
+  // Grade tint over the photo, then a soft light from the top.
   ctx.fillStyle = grade.tint;
   ctx.fillRect(ox, oy, w, h);
   const light = ctx.createLinearGradient(ox, oy, ox, oy + h);
@@ -148,28 +173,7 @@ export function drawPanel(ctx, panel, slot, img, grade, W, H, diagonal) {
   ctx.fillRect(ox, oy, w, h);
   ctx.restore();
 
-  // Frame: a white inked border around the panel.
-  ctx.save();
-  ctx.strokeStyle = 'rgba(255,255,255,0.92)';
-  ctx.lineWidth = Math.max(2, W * 0.004);
-  ctx.lineJoin = 'round';
-  if (diagonal) {
-    const s = H * 0.055;
-    ctx.beginPath();
-    ctx.moveTo(x + s, y);
-    ctx.lineTo(x + w + s, y);
-    ctx.lineTo(x + w - s, y + h);
-    ctx.lineTo(x - s, y + h);
-    ctx.closePath();
-    ctx.stroke();
-  } else if (panel.rot) {
-    ctx.translate(x + w / 2, y + h / 2);
-    ctx.rotate((panel.rot * Math.PI) / 180);
-    ctx.strokeRect(-w / 2, -h / 2, w, h);
-  } else {
-    ctx.strokeRect(x, y, w, h);
-  }
-  ctx.restore();
+  strokePanelFrame(ctx, panel, x, y, w, h, W, H, diagonal);
 }
 
 /** Draws the title block: gradient band, halftone strip, big title, script subtitle. */
@@ -180,15 +184,15 @@ export function drawTitleBlock(ctx, box, state, grade, W, H) {
   const h = box.h * H;
   const inGrid = !!state.layoutDef.titleInGrid;
 
-  const g = ctx.createLinearGradient(x, y, x + w, y + (inGrid ? h : 0));
+  const band = ctx.createLinearGradient(x, y, x + w, y + (inGrid ? h : 0));
   if (inGrid) {
-    g.addColorStop(0, grade.band[1]);
-    g.addColorStop(1, grade.band[0]);
+    band.addColorStop(0, grade.band[1]);
+    band.addColorStop(1, grade.band[0]);
   } else {
-    g.addColorStop(0, grade.band[0]);
-    g.addColorStop(1, grade.band[1]);
+    band.addColorStop(0, grade.band[0]);
+    band.addColorStop(1, grade.band[1]);
   }
-  ctx.fillStyle = g;
+  ctx.fillStyle = band;
   ctx.fillRect(x, y, w, h);
   if (!inGrid) {
     drawHalftone(ctx, x, y + h * 0.06, w, 2, Math.max(9, W * 0.012), 'rgba(255,255,255,0.35)');
@@ -202,7 +206,7 @@ export function drawTitleBlock(ctx, box, state, grade, W, H) {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   if (inGrid) {
-    // Centre-cell title: stacked words in their own order, sized to the longest.
+    // Centre-cell title: words stacked in their own order, sized to the longest.
     const words = title.split(/\s+/);
     const longest = words.reduce((a, b) => (a.length >= b.length ? a : b), '');
     const size = fitTitle(ctx, longest, w - pad * 2, h * 0.30, 'Anton, sans-serif');
@@ -212,8 +216,8 @@ export function drawTitleBlock(ctx, box, state, grade, W, H) {
     ctx.shadowBlur = size * 0.12;
     ctx.shadowOffsetY = size * 0.04;
     const lineH = size * 1.08;
-    const startY = y + h / 2 - ((words.length - 1) * lineH) / 2;
-    words.forEach((word, i) => ctx.fillText(word, x + w / 2, startY + i * lineH));
+    const firstY = y + h / 2 - ((words.length - 1) * lineH) / 2;
+    words.forEach((word, i) => ctx.fillText(word, x + w / 2, firstY + i * lineH));
     ctx.shadowBlur = 0;
     ctx.shadowOffsetY = 0;
     return;
@@ -248,13 +252,13 @@ export function drawOverlays(ctx, state, grade, W, H) {
   if (stars > 0) {
     const r = Math.max(10, W * 0.016);
     const gap = r * 2.4;
-    const totalW = gap * 5;
+    const pillW = gap * 5 + r * 1.2;
     const cx0 = W * 0.03 + r;
     const cy = H * 0.035 + r;
-    ctx.fillStyle = 'rgba(10,5,20,0.55)';
     const pillH = r * 2.6;
+    ctx.fillStyle = 'rgba(10,5,20,0.55)';
     ctx.beginPath();
-    ctx.roundRect(W * 0.02, H * 0.02, totalW + r * 1.2, pillH, pillH / 2);
+    ctx.roundRect(W * 0.02, H * 0.02, pillW, pillH, pillH / 2);
     ctx.fill();
     for (let i = 0; i < 5; i++) {
       starPath(ctx, cx0 + i * gap, cy, r);
@@ -266,8 +270,8 @@ export function drawOverlays(ctx, state, grade, W, H) {
   if (badge) {
     const fs = Math.max(12, W * 0.02);
     ctx.font = `${fs}px "Bebas Neue", sans-serif`;
-    const tw = ctx.measureText(badge.toUpperCase()).width;
-    const bw = tw + fs * 1.6;
+    const textW = ctx.measureText(badge.toUpperCase()).width;
+    const bw = textW + fs * 1.6;
     const bh = fs * 1.9;
     ctx.save();
     ctx.translate(W - bw * 0.55, H * 0.055);
@@ -320,6 +324,7 @@ export function renderCoverCanvas(state, size, resolvePhoto) {
   const canvas = document.createElement('canvas');
   canvas.width = size.w;
   canvas.height = size.h;
-  drawCover(canvas.getContext('2d'), state, size.w, size.h, resolvePhoto);
+  const ctx = canvas.getContext('2d');
+  drawCover(ctx, state, size.w, size.h, resolvePhoto);
   return canvas;
 }

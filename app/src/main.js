@@ -1,7 +1,8 @@
-// Wires the Vice Cover Studio editor: pick a layout, a grade and a size, drop in
-// photos, crop each panel by dragging it, letter the caption, export the PNG.
-// Photos never leave the machine: uploads are read with object URLs, samples are
-// bundled files. A `?shot=` query sets up a fixed scene for a screenshot instead.
+// Wires the Vice Cover Studio editor: pick a layout, a grade and a size, drop
+// in photos, crop each panel by dragging it, letter the caption, export the
+// PNG. Photos never leave the machine: uploads are read with object URLs and
+// the samples are bundled files. A `?shot=` query sets up a fixed scene for
+// a screenshot instead of the live editor.
 
 import { drawCover, renderCoverCanvas, SIZES } from './cover.js';
 import { GRADES, GRADE_IDS } from './grades.js';
@@ -38,23 +39,24 @@ function redraw() {
     preview.width = pw;
     preview.height = ph;
   }
-  drawCover(preview.getContext('2d'), viewState(state), pw, ph, (key) => photoStore.get(key) || null);
+  const ctx = preview.getContext('2d');
+  drawCover(ctx, viewState(state), pw, ph, (key) => photoStore.get(key) || null);
   $('undo').disabled = !history.canUndo;
   $('redo').disabled = !history.canRedo;
 }
 
-/** Builds one row of picker buttons into a container. */
-function buildPicker(containerId, ids, labels, current, onPick) {
-  const box = $(containerId);
-  box.innerHTML = '';
+/** Builds one row of picker buttons into a container element. */
+function buildPicker(containerId, ids, labelFor, current, onPick) {
+  const container = $(containerId);
+  container.innerHTML = '';
   ids.forEach((id) => {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'pick' + (id === current ? ' active' : '');
-    b.textContent = labels(id);
-    b.setAttribute('aria-pressed', id === current ? 'true' : 'false');
-    b.addEventListener('click', () => onPick(id));
-    box.appendChild(b);
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'pick' + (id === current ? ' active' : '');
+    button.textContent = labelFor(id);
+    button.setAttribute('aria-pressed', id === current ? 'true' : 'false');
+    button.addEventListener('click', () => onPick(id));
+    container.appendChild(button);
   });
 }
 
@@ -63,9 +65,16 @@ function buildPanelEditors() {
   const state = history.state;
   const box = $('panels');
   box.innerHTML = '';
-  const count = (LAYOUTS[state.layout] || LAYOUTS.bands).count;
-  for (let i = 0; i < count; i++) {
+  const layout = LAYOUTS[state.layout] || LAYOUTS.bands;
+  for (let i = 0; i < layout.count; i++) {
     const slot = state.panels[i] || { key: null, zoom: 1, ox: 0, oy: 0 };
+    const sampleOptions = SAMPLE_PHOTOS.map((sample) => {
+      const picked = slot.key === sample.key ? 'selected' : '';
+      return `<option value="${sample.key}" ${picked}>${sample.label}</option>`;
+    }).join('');
+    const uploadOption = slot.key && slot.key.startsWith('upload:')
+      ? `<option value="${slot.key}" selected>Uploaded photo</option>`
+      : '';
     const row = document.createElement('div');
     row.className = 'panel-row' + (i === selectedPanel ? ' selected' : '');
     row.innerHTML = `
@@ -73,8 +82,8 @@ function buildPanelEditors() {
       <label>Photo
         <select data-field="key">
           <option value="">— empty —</option>
-          ${SAMPLE_PHOTOS.map((s) => `<option value="${s.key}" ${slot.key === s.key ? 'selected' : ''}>${s.label}</option>`).join('')}
-          ${slot.key && slot.key.startsWith('upload:') ? `<option value="${slot.key}" selected>Uploaded photo</option>` : ''}
+          ${sampleOptions}
+          ${uploadOption}
         </select>
         <span class="upload-link" role="button" tabindex="0">Upload…</span>
       </label>
@@ -134,6 +143,7 @@ function syncControls() {
   buildPanelEditors();
 }
 
+// Caption controls: every keystroke is one undo step.
 $('title').addEventListener('input', (e) => history.edit((s) => { s.title = e.target.value; }));
 $('subtitle').addEventListener('input', (e) => history.edit((s) => { s.subtitle = e.target.value; }));
 $('badge').addEventListener('input', (e) => history.edit((s) => { s.badge = e.target.value; }));
@@ -150,6 +160,7 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
+// A picked file goes to the selected panel, cached under an upload: key.
 $('file').addEventListener('change', async (e) => {
   const file = e.target.files[0];
   e.target.value = '';
@@ -161,6 +172,7 @@ $('file').addEventListener('change', async (e) => {
   statusEl.textContent = 'Photo loaded into panel ' + (i + 1) + '.';
 });
 
+// One click renders the cover at full export size and downloads the PNG.
 $('export').addEventListener('click', async () => {
   await fontsReady;
   const state = history.state;
@@ -186,7 +198,9 @@ function panelAt(px, py) {
   const fy = (py / preview.height) * size.h;
   for (let i = layout.panels.length - 1; i >= 0; i--) {
     const p = layout.panels[i];
-    if (fx >= p.x * size.w && fx <= (p.x + p.w) * size.w && fy >= p.y * size.h && fy <= (p.y + p.h) * size.h) return i;
+    const insideX = fx >= p.x * size.w && fx <= (p.x + p.w) * size.w;
+    const insideY = fy >= p.y * size.h && fy <= (p.y + p.h) * size.h;
+    if (insideX && insideY) return i;
   }
   return -1;
 }

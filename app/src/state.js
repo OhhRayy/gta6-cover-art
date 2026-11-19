@@ -1,11 +1,12 @@
-// Editor state for Vice Cover Studio: what the cover is, what the user can undo,
-// and where the photos live. Photos are kept in a Map by key so the undo stack
-// only ever stores small JSON snapshots, never image bytes.
+// Editor state for Vice Cover Studio: what the cover is, what the user can
+// undo, and where the photos live. Photos sit in a Map keyed by a string, so
+// the undo stack only ever holds small JSON snapshots, never image bytes.
 
 import { GRADES, GRADE_IDS } from './grades.js';
 import { LAYOUTS, LAYOUT_IDS } from './layouts.js';
 import { SIZES } from './cover.js';
 
+// The four bundled sample photos (AI-made, no real people).
 export const SAMPLE_PHOTOS = [
   { key: 'sample:convertible', label: 'Convertible', src: 'samples/convertible.jpg' },
   { key: 'sample:rooftop', label: 'Rooftop', src: 'samples/rooftop.jpg' },
@@ -13,6 +14,7 @@ export const SAMPLE_PHOTOS = [
   { key: 'sample:pier', label: 'Pier', src: 'samples/pier.jpg' },
 ];
 
+// The cover a fresh visitor sees: diagonal bands, sunset grade, wide export.
 export const DEFAULT_STATE = {
   layout: 'bands',
   grade: 'sunset',
@@ -35,7 +37,8 @@ export const photoStore = new Map();
 
 /** Loads an image from a URL and caches it under `key`. Resolves to the image. */
 export function cachePhoto(key, url) {
-  if (photoStore.has(key)) return Promise.resolve(photoStore.get(key));
+  const cached = photoStore.get(key);
+  if (cached) return Promise.resolve(cached);
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
@@ -49,16 +52,19 @@ export function cachePhoto(key, url) {
 
 /** Preloads the four bundled sample photos. */
 export function preloadSamples() {
-  return Promise.all(SAMPLE_PHOTOS.map((s) => cachePhoto(s.key, s.src)));
+  const jobs = SAMPLE_PHOTOS.map((sample) => cachePhoto(sample.key, sample.src));
+  return Promise.all(jobs);
 }
 
 /** A fresh panels array for a layout: first photo spread over every panel. */
 export function panelsFor(layoutId, firstKey) {
   const count = LAYOUTS[layoutId].count;
-  return Array.from({ length: count }, () => ({ key: firstKey, zoom: 1, ox: 0, oy: 0 }));
+  const slots = [];
+  for (let i = 0; i < count; i++) slots.push({ key: firstKey, zoom: 1, ox: 0, oy: 0 });
+  return slots;
 }
 
-/** The state the renderer needs, with the layout and grade objects resolved. */
+/** The state the renderer needs, with layout and grade objects resolved. */
 export function viewState(state) {
   return {
     ...state,
@@ -69,9 +75,11 @@ export function viewState(state) {
 
 /** The export size object for the state's chosen size id. */
 export function sizeOf(state) {
-  return SIZES.find((s) => s.id === state.size) || SIZES[0];
+  const found = SIZES.find((size) => size.id === state.size);
+  return found || SIZES[0];
 }
 
+/** A deep copy of a state object, via JSON. */
 export function cloneState(state) {
   return JSON.parse(JSON.stringify(state));
 }
@@ -95,7 +103,7 @@ export class History {
   /** Records a new state, clearing the redo stack. */
   push(next) {
     this.past.push(this.current);
-    if (this.past.length > 60) this.past.shift();
+    while (this.past.length > 60) this.past.shift();
     this.future = [];
     this.current = cloneState(next);
     this.onChange(this.current);
@@ -109,7 +117,7 @@ export class History {
   }
 
   undo() {
-    if (!this.past.length) return false;
+    if (this.past.length === 0) return false;
     this.future.push(this.current);
     this.current = this.past.pop();
     this.onChange(this.current);
@@ -117,7 +125,7 @@ export class History {
   }
 
   redo() {
-    if (!this.future.length) return false;
+    if (this.future.length === 0) return false;
     this.past.push(this.current);
     this.current = this.future.pop();
     this.onChange(this.current);

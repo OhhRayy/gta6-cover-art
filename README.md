@@ -6,19 +6,19 @@ cover art, exported as a PNG to share. Built for the make.fun bounty
 
 ## What it does
 
-- **6 layouts**: Four Panel, Hero + Three, Nine Panel (title in the centre cell),
-  Tilted Snaps, Diagonal Bands, Full Bleed.
+- **6 layouts**: Four Panel, Hero + Three, Nine Panel (title in the centre
+  cell), Tilted Snaps, Diagonal Bands, Full Bleed.
 - **6 colour grades**: Vice Sunset, Neon Night, Palm Gold, Ocean Drive,
-  Bubblegum, Mono Heat — sunset/neon gradients, photo tints, halftone title
-  bands, film grain and vignette.
-- **Any photo**: upload your own photos or use the four bundled AI-made samples.
-  Each panel takes its own photo (or one photo for all panels); drag a photo in
-  the preview to reposition it, zoom and pan per panel, and edit the title,
-  script subtitle, badge ribbon and 5-star heat meter.
+  Bubblegum, Mono Heat — sunset and neon gradients, photo tints, halftone
+  title bands, film grain and vignette.
+- **Any photo**: upload your own photos, or use the four bundled AI-made
+  samples. Each panel takes its own photo, or one photo can fill all panels.
+  Drag a photo in the preview to reposition it, zoom and pan per panel, and
+  edit the title, script subtitle, badge ribbon and 5-star heat meter.
 - **Fast**: one click from a sample photo to an exported PNG in 1080 × 1080,
-  1080 × 1350 or 1920 × 1080. Undo/redo included.
-- **Offline**: static files under `app/`, no network request. Fonts (Anton,
-  Pacifico, Bebas Neue) are bundled under the SIL Open Font License.
+  1080 × 1350 or 1920 × 1080. Undo and redo included (Ctrl+Z).
+- **Offline**: static files under `app/`, no network request. The fonts
+  (Anton, Pacifico, Bebas Neue) are bundled under the SIL Open Font License.
 
 ## Try it
 
@@ -33,7 +33,7 @@ mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 ```
 
 `main.ts` copies `app/` and `screenshots/` to the output directory and writes
-`dossier.json` with the vendored make.fun library.
+`dossier.json` there with the vendored make.fun library.
 
 ## Originality
 

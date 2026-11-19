@@ -1,5 +1,6 @@
-/* Vice Cover Studio editor styling. Dark stage, neon accents, system fonts for
-   the UI chrome; the cover itself uses the bundled Anton / Pacifico / Bebas Neue. */
+/* Vice Cover Studio editor styling.
+   Dark stage with neon accents. The UI chrome uses system fonts; the cover
+   itself is drawn with the bundled Anton / Pacifico / Bebas Neue. */
 @font-face {
   font-family: "Bebas Neue";
   src: url("./fonts/BebasNeue.ttf") format("truetype");
@@ -30,6 +31,8 @@ body {
   text-transform: uppercase;
 }
 .top p { margin: 4px 0 0; max-width: 70ch; color: #ffe9f2; }
+
+/* Two columns: controls on the left, live preview on the right. */
 .app {
   display: grid;
   grid-template-columns: 380px 1fr;
@@ -58,6 +61,7 @@ body {
 }
 .pick:hover { border-color: #ff5e78; }
 .pick.active { background: #ff5e78; border-color: #ff5e78; color: #fff; }
+
 label { display: block; margin: 8px 0; }
 label.check { display: inline-block; margin-right: 16px; }
 input[type="text"], select {
@@ -74,6 +78,8 @@ input[type="text"], select {
 input[type="checkbox"] { width: auto; display: inline-block; }
 input[type="range"] { width: 100%; accent-color: #ff5e78; }
 .hint { color: #b9a8d6; font-size: 13px; margin: 4px 0; }
+
+/* One card per panel, with its photo, zoom and pan controls. */
 .panel-row {
   border: 1px solid #3a2a5e;
   border-radius: 10px;
@@ -109,6 +115,7 @@ input[type="range"] { width: 100%; accent-color: #ff5e78; }
   cursor: pointer;
   font: inherit;
 }
+
 .actions { display: flex; gap: 8px; margin-top: 16px; }
 .actions button {
   border: 1px solid #5b4a7a;
@@ -123,6 +130,8 @@ input[type="range"] { width: 100%; accent-color: #ff5e78; }
 .actions .primary { background: #ff5e78; border-color: #ff5e78; font-weight: 700; }
 #status { min-height: 1.4em; color: #a5f3ff; }
 .fine { color: #8d7bb0; font-size: 12px; }
+
+/* Sticky preview column. */
 .stage { position: sticky; top: 12px; }
 #preview {
   width: 100%;
@@ -137,7 +146,7 @@ input[type="range"] { width: 100%; accent-color: #ff5e78; }
 #preview:active { cursor: grabbing; }
 .stage .hint { text-align: center; }
 
-/* Screenshot mode: cover alone, edge to edge. */
+/* Screenshot mode: cover alone, edge to edge, no editor chrome. */
 body.shot-cover .top, body.shot-cover .controls, body.shot-cover .stage .hint { display: none; }
 body.shot-cover { background: #000; }
 body.shot-cover .app { display: block; padding: 0; }

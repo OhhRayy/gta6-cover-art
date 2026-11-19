@@ -1,11 +1,15 @@
-// Panel layouts for Vice Cover Studio. Each layout returns the panels that make
-// the cover, as fractions of the cover width and height, plus where the title
-// block sits. `panels` entries: {x, y, w, h, rot} in fractions, rot in degrees.
-// `title` is {x, y, w, h} in fractions, or null when the title floats over the art.
-// `count` is how many photos the layout uses.
+// Panel layouts for Vice Cover Studio. A layout describes the panels that
+// build the cover — each as fractions of the cover's width and height — plus
+// the box the title block sits in. A panel is {x, y, w, h, rot} with rot in
+// degrees; `title` is {x, y, w, h} in fractions. `count` says how many photos
+// a layout takes, and `titleInGrid` marks the layout whose centre cell is
+// the title instead of a photo.
 
-function rect(x, y, w, h, rot = 0) {
-  return { x, y, w, h, rot };
+// Builds one panel rectangle; `rot` tilts it, `kind` marks a diagonal band.
+function rect(x, y, w, h, rot = 0, kind = undefined) {
+  const panel = { x, y, w, h, rot };
+  if (kind) panel.kind = kind;
+  return panel;
 }
 
 export const LAYOUTS = {
@@ -34,19 +38,19 @@ export const LAYOUTS = {
   nine: {
     name: 'Nine Panel',
     count: 8,
+    titleInGrid: true,
     panels: [
       rect(0.015, 0.015, 0.317, 0.313),
       rect(0.342, 0.015, 0.317, 0.313),
       rect(0.668, 0.015, 0.317, 0.313),
       rect(0.015, 0.343, 0.317, 0.313),
-      // centre cell (0.342, 0.343) is the title block
+      // centre cell (0.342, 0.343) is the title block, not a photo
       rect(0.668, 0.343, 0.317, 0.313),
       rect(0.015, 0.672, 0.317, 0.313),
       rect(0.342, 0.672, 0.317, 0.313),
       rect(0.668, 0.672, 0.317, 0.313),
     ],
     title: { x: 0.342, y: 0.343, w: 0.317, h: 0.313 },
-    titleInGrid: true,
   },
   tilt: {
     name: 'Tilted Snaps',
@@ -61,13 +65,13 @@ export const LAYOUTS = {
   bands: {
     name: 'Diagonal Bands',
     count: 3,
+    diagonal: true,
     panels: [
       rect(-0.06, -0.04, 0.44, 1.08, 0, 'band'),
       rect(0.30, -0.04, 0.44, 1.08, 0, 'band'),
       rect(0.66, -0.04, 0.44, 1.08, 0, 'band'),
     ],
     title: { x: 0, y: 0.76, w: 1, h: 0.24 },
-    diagonal: true,
   },
   bleed: {
     name: 'Full Bleed',

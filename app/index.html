@@ -4,14 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Vice Cover Studio — GTA-style cover maker</title>
+<!-- No favicon file: a data: URI keeps the app free of network requests. -->
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="./style.css">
 </head>
 <body>
 <header class="top">
   <h1>Vice Cover Studio</h1>
-  <p>Your photo, your caption — a Vice City poster in three clicks. Everything runs
-  offline in this page; photos never leave your machine.</p>
+  <p>Turn your photo and a caption into a Vice City poster in three clicks.
+  Everything runs offline in this page; photos never leave your machine.</p>
 </header>
 <main class="app">
   <section class="controls" aria-label="Cover controls">
@@ -42,7 +43,7 @@
     <label class="check"><input id="vignette" type="checkbox" checked> Vignette</label>
 
     <h2>5 · Photos</h2>
-    <p class="hint">Click a panel below, or drag its photo in the preview to reposition it.</p>
+    <p class="hint">Pick a panel below, or drag its photo in the preview to move it.</p>
     <div id="panels"></div>
     <input id="file" type="file" accept="image/*" hidden>
 

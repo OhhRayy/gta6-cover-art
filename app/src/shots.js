@@ -1,29 +1,35 @@
-// Fixed scenes for screenshots: ?shot=editor shows the editor with photos loaded;
-// ?shot=cover shows the cover alone, edge to edge. Query params pick the scene:
-// layout, grade, size (square|portrait|wide), title, subtitle, badge, stars and
-// photos (comma-separated sample names). window.__shotReady is set once painted.
+// Fixed scenes for screenshots. `?shot=editor` shows the editor with photos
+// loaded; `?shot=cover` shows the cover alone, edge to edge. The query string
+// picks the scene: layout, grade, size (square|portrait|wide), title,
+// subtitle, badge, stars, and photos (comma-separated sample names).
+// window.__shotReady is set once the scene has painted.
 
 import { loadFonts } from './fonts.js';
 import { panelsFor, preloadSamples } from './state.js';
 import { LAYOUTS } from './layouts.js';
 
-const SAMPLE_KEYS = ['convertible', 'rooftop', 'neon', 'pier'];
+const SHOT_SAMPLES = ['convertible', 'rooftop', 'neon', 'pier'];
 
+/** Photo keys for a scene: named samples in order, cycling to fill `count`. */
 function photoKeys(query, count) {
-  const named = (query.get('photos') || '').split(',').map((s) => s.trim()).filter(Boolean);
-  const names = named.length ? named : SAMPLE_KEYS;
-  return Array.from({ length: count }, (_, i) => `sample:${names[i % names.length]}`);
+  const named = (query.get('photos') || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const pool = named.length ? named : SHOT_SAMPLES;
+  const keys = [];
+  for (let i = 0; i < count; i++) keys.push(`sample:${pool[i % pool.length]}`);
+  return keys;
 }
 
 export async function runShot(shot, query) {
   if (shot === 'cover') document.body.classList.add('shot-cover');
-  const layout = LAYOUTS[query.get('layout')] ? query.get('layout') : 'bands';
-  const count = LAYOUTS[layout].count;
-  const keys = photoKeys(query, count);
-  const panels = panelsFor(layout, keys[0]);
+  const layoutId = LAYOUTS[query.get('layout')] ? query.get('layout') : 'bands';
+  const keys = photoKeys(query, LAYOUTS[layoutId].count);
+  const panels = panelsFor(layoutId, keys[0]);
   keys.forEach((key, i) => { panels[i].key = key; });
   const patch = {
-    layout,
+    layout: layoutId,
     grade: query.get('grade') || 'sunset',
     size: query.get('size') || 'wide',
     title: query.get('title') || 'VICE CITY',

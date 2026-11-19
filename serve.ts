@@ -1,18 +1,19 @@
-// A tiny static server for app/ (Node 22, standard library only), so the entry
-// can be tried locally without a build step: `node serve.ts` serves app/ on
-// http://localhost:8080. Development convenience only.
+// A tiny static server for app/ (Node 22, standard library only), so the
+// entry can be tried locally with no build step: `node serve.ts` serves app/
+// on http://localhost:8080. Development convenience only — not part of the app.
 import { createReadStream, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { extname, join, normalize, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(fileURLToPath(new URL('./app', import.meta.url)));
-const args = process.argv.slice(2);
-const portIndex = args.indexOf('--port');
-const requested = portIndex === -1 ? 8080 : Number(args[portIndex + 1]);
-const port = Number.isInteger(requested) && requested > 0 && requested < 65536 ? requested : 8080;
+const argv = process.argv.slice(2);
+const portFlag = argv.indexOf('--port');
+const wanted = portFlag === -1 ? 8080 : Number(argv[portFlag + 1]);
+const port = Number.isInteger(wanted) && wanted > 0 && wanted < 65536 ? wanted : 8080;
 
-const MIME: Record<string, string> = {
+// Content types by extension; anything else is served as a byte stream.
+const CONTENT_TYPES: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
   '.mjs': 'text/javascript; charset=utf-8',
@@ -35,6 +36,7 @@ createServer((request, response) => {
     return;
   }
   if (pathname.endsWith('/')) pathname += 'index.html';
+  // Resolve inside app/ only — a path climbing out is forbidden.
   const file = resolve(join(root, normalize(pathname)));
   if (file !== root && !file.startsWith(root + sep)) {
     response.writeHead(403).end('forbidden');
@@ -50,7 +52,7 @@ createServer((request, response) => {
     return;
   }
   response.writeHead(200, {
-    'content-type': MIME[extname(file).toLowerCase()] ?? 'application/octet-stream',
+    'content-type': CONTENT_TYPES[extname(file).toLowerCase()] ?? 'application/octet-stream',
     'content-length': size,
     'cache-control': 'no-store',
   });
