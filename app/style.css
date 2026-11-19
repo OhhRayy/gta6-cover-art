@@ -1,0 +1,151 @@
+/* Vice Cover Studio editor styling. Dark stage, neon accents, system fonts for
+   the UI chrome; the cover itself uses the bundled Anton / Pacifico / Bebas Neue. */
+@font-face {
+  font-family: "Bebas Neue";
+  src: url("./fonts/BebasNeue.ttf") format("truetype");
+  font-display: swap;
+}
+@font-face {
+  font-family: "Anton";
+  src: url("./fonts/Anton.ttf") format("truetype");
+  font-display: swap;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: #0d0716;
+  color: #f2eef7;
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+.top {
+  padding: 18px 24px 8px;
+  background: linear-gradient(100deg, #ff5e78 0%, #7b2fbe 55%, #2b6cff 100%);
+}
+.top h1 {
+  margin: 0;
+  font-family: "Anton", sans-serif;
+  font-size: 34px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.top p { margin: 4px 0 0; max-width: 70ch; color: #ffe9f2; }
+.app {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 20px;
+  padding: 16px 24px 24px;
+  align-items: start;
+}
+.controls h2 {
+  margin: 18px 0 8px;
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 21px;
+  letter-spacing: 2px;
+  color: #ffd166;
+  text-transform: uppercase;
+}
+.controls h2:first-child { margin-top: 0; }
+.picker { display: flex; flex-wrap: wrap; gap: 6px; }
+.pick {
+  border: 1px solid #5b4a7a;
+  background: #1d1330;
+  color: #f2eef7;
+  border-radius: 999px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font: inherit;
+}
+.pick:hover { border-color: #ff5e78; }
+.pick.active { background: #ff5e78; border-color: #ff5e78; color: #fff; }
+label { display: block; margin: 8px 0; }
+label.check { display: inline-block; margin-right: 16px; }
+input[type="text"], select {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 8px 10px;
+  border: 1px solid #5b4a7a;
+  border-radius: 8px;
+  background: #140b22;
+  color: #f2eef7;
+  font: inherit;
+}
+input[type="checkbox"] { width: auto; display: inline-block; }
+input[type="range"] { width: 100%; accent-color: #ff5e78; }
+.hint { color: #b9a8d6; font-size: 13px; margin: 4px 0; }
+.panel-row {
+  border: 1px solid #3a2a5e;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin: 8px 0;
+  background: #160d28;
+}
+.panel-row.selected { border-color: #ffd166; }
+.panel-name {
+  background: none;
+  border: none;
+  color: #ffd166;
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 19px;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  padding: 0;
+}
+.panel-row label { margin: 6px 0; font-size: 13px; }
+.upload-link {
+  color: #2de2ff;
+  cursor: pointer;
+  text-decoration: underline;
+  margin-left: 8px;
+}
+.fill-all {
+  margin-top: 6px;
+  border: 1px solid #5b4a7a;
+  background: none;
+  color: #f2eef7;
+  border-radius: 8px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font: inherit;
+}
+.actions { display: flex; gap: 8px; margin-top: 16px; }
+.actions button {
+  border: 1px solid #5b4a7a;
+  background: #1d1330;
+  color: #f2eef7;
+  border-radius: 8px;
+  padding: 9px 14px;
+  cursor: pointer;
+  font: inherit;
+}
+.actions button:disabled { opacity: 0.4; cursor: default; }
+.actions .primary { background: #ff5e78; border-color: #ff5e78; font-weight: 700; }
+#status { min-height: 1.4em; color: #a5f3ff; }
+.fine { color: #8d7bb0; font-size: 12px; }
+.stage { position: sticky; top: 12px; }
+#preview {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+  background: #1d0b2e;
+  cursor: grab;
+  touch-action: none;
+}
+#preview:active { cursor: grabbing; }
+.stage .hint { text-align: center; }
+
+/* Screenshot mode: cover alone, edge to edge. */
+body.shot-cover .top, body.shot-cover .controls, body.shot-cover .stage .hint { display: none; }
+body.shot-cover { background: #000; }
+body.shot-cover .app { display: block; padding: 0; }
+body.shot-cover .stage { position: static; }
+body.shot-cover #preview {
+  width: 100vw;
+  height: 100vh;
+  object-fit: contain;
+  border-radius: 0;
+  box-shadow: none;
+}
