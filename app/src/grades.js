@@ -4,6 +4,9 @@
 // copies Rockstar logos, artwork or fonts — every value below is our own.
 
 // A grade: sky stops, photo tint, band stops, title ink, accent, subtitle ink.
+// `pop` is the bright colour for the star meter and badge fill: it defaults to
+// the accent, but a dark accent (Palm Gold's brown) would vanish on the dark
+// pill, so that grade names a bright pop instead.
 export const GRADES = {
   // Warm dusk: orange into pink into purple.
   sunset: {
@@ -29,6 +32,7 @@ export const GRADES = {
   gold: {
     name: 'Palm Gold',
     accent: '#7a3b12',
+    pop: '#ffd166',
     title: '#fff7e0',
     sub: '#ffe9a8',
     sky: ['#ffd166', '#ff8c42', '#7a3b12'],

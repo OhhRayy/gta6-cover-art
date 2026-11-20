@@ -249,6 +249,7 @@ export function drawTitleBlock(ctx, box, state, grade, W, H) {
 /** Draws the star heat meter (top-left) and the badge ribbon (top-right). */
 export function drawOverlays(ctx, state, grade, W, H) {
   const stars = Math.max(0, Math.min(5, state.stars || 0));
+  const pop = grade.pop || grade.accent;
   if (stars > 0) {
     const r = Math.max(10, W * 0.016);
     const gap = r * 2.4;
@@ -262,7 +263,7 @@ export function drawOverlays(ctx, state, grade, W, H) {
     ctx.fill();
     for (let i = 0; i < 5; i++) {
       starPath(ctx, cx0 + i * gap, cy, r);
-      ctx.fillStyle = i < stars ? grade.accent : 'rgba(255,255,255,0.28)';
+      ctx.fillStyle = i < stars ? pop : 'rgba(255,255,255,0.28)';
       ctx.fill();
     }
   }
@@ -276,7 +277,7 @@ export function drawOverlays(ctx, state, grade, W, H) {
     ctx.save();
     ctx.translate(W - bw * 0.55, H * 0.055);
     ctx.rotate(0.10);
-    ctx.fillStyle = grade.accent;
+    ctx.fillStyle = pop;
     ctx.beginPath();
     ctx.roundRect(-bw / 2, -bh / 2, bw, bh, bh * 0.18);
     ctx.fill();

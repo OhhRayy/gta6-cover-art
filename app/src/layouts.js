@@ -79,6 +79,15 @@ export const LAYOUTS = {
     panels: [rect(0, 0, 1, 1)],
     title: { x: 0, y: 0.74, w: 1, h: 0.26 },
   },
+  duo: {
+    name: 'Duo',
+    count: 2,
+    panels: [
+      rect(0.02, 0.02, 0.475, 0.735),
+      rect(0.505, 0.02, 0.475, 0.735),
+    ],
+    title: { x: 0, y: 0.78, w: 1, h: 0.22 },
+  },
 };
 
 export const LAYOUT_IDS = Object.keys(LAYOUTS);

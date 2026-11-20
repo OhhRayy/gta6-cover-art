@@ -12,13 +12,14 @@ cover art, exported as a PNG to share. Built for the make.fun bounty
 
 ## What it does
 
-- **6 layouts**: Four Panel, Hero + Three, Nine Panel (title in the centre
-  cell), Tilted Snaps, Diagonal Bands, Full Bleed.
+- **7 layouts**: Four Panel, Hero + Three, Nine Panel (title in the centre
+  cell), Tilted Snaps, Diagonal Bands, Full Bleed, Duo (two protagonists
+  side by side, the GTA VI key-art composition).
 - **6 colour grades**: Vice Sunset, Neon Night, Palm Gold, Ocean Drive,
   Bubblegum, Mono Heat — sunset and neon gradients, photo tints, halftone
   title bands, film grain and vignette.
-- **Any photo**: upload your own photos, or use the four bundled AI-made
-  samples. Each panel takes its own photo, or one photo can fill all panels.
+- **Any photo**: upload your own photos, or use the six bundled AI-made
+  samples, including two portraits made for the Duo layout. Each panel takes
   Drag a photo in the preview to reposition it, zoom and pan per panel, and
   edit the title, script subtitle, badge ribbon and 5-star heat meter.
 - **Fast**: one click from a sample photo to an exported PNG in 1080 × 1080,

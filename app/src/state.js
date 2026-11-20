@@ -6,12 +6,14 @@ import { GRADES, GRADE_IDS } from './grades.js';
 import { LAYOUTS, LAYOUT_IDS } from './layouts.js';
 import { SIZES } from './cover.js';
 
-// The four bundled sample photos (AI-made, no real people).
+// The six bundled sample photos (AI-made, no real people).
 export const SAMPLE_PHOTOS = [
   { key: 'sample:convertible', label: 'Convertible', src: 'samples/convertible.jpg' },
   { key: 'sample:rooftop', label: 'Rooftop', src: 'samples/rooftop.jpg' },
   { key: 'sample:neon', label: 'Neon Street', src: 'samples/neon.jpg' },
   { key: 'sample:pier', label: 'Pier', src: 'samples/pier.jpg' },
+  { key: 'sample:woman', label: 'Woman (Convertible)', src: 'samples/woman.jpg' },
+  { key: 'sample:man', label: 'Man (Rooftop)', src: 'samples/man.jpg' },
 ];
 
 // The cover a fresh visitor sees: diagonal bands, sunset grade, wide export.
@@ -50,7 +52,7 @@ export function cachePhoto(key, url) {
   });
 }
 
-/** Preloads the four bundled sample photos. */
+/** Preloads the six bundled sample photos. */
 export function preloadSamples() {
   const jobs = SAMPLE_PHOTOS.map((sample) => cachePhoto(sample.key, sample.src));
   return Promise.all(jobs);

@@ -8,7 +8,7 @@ import { loadFonts } from './fonts.js';
 import { panelsFor, preloadSamples } from './state.js';
 import { LAYOUTS } from './layouts.js';
 
-const SHOT_SAMPLES = ['convertible', 'rooftop', 'neon', 'pier'];
+const SHOT_SAMPLES = ['woman', 'man', 'neon', 'pier'];
 
 /** Photo keys for a scene: named samples in order, cycling to fill `count`. */
 function photoKeys(query, count) {
